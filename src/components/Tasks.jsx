@@ -1,0 +1,74 @@
+import { useTask } from "../hooks/useTask";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { Header } from "../components/Header"
+import { TaskList } from "../components/TaskList";
+import { ChakraProvider } from '@chakra-ui/react';
+import { Button } from '@chakra-ui/react';
+
+export function Tasks(){
+
+    const [tasks, addTask, editTask, deleteTask, taskDone] = useTask();
+    
+    const [form, setForm] = useState(false);
+
+    const { register , handleSubmit, formState : {errors}} = useForm();
+
+    const onSubmit = (data) => {
+        addTask(data.title, data.description);
+        setForm(false);
+    };
+
+    const handleTaskClick = (taskId) => {
+        taskDone(taskId);
+    };
+
+    const handleTaskDelete = (taskId) => {
+        deleteTask(taskId);
+    };
+
+    const handleTaskEdit = (taskId, text) => {
+        editTask(taskId, text);
+    };
+
+    const handleTaskNew = () => {
+        setForm(true);
+    };
+
+    return (
+        <ChakraProvider>
+          <div className="App">
+            <Header title="Lista de Tareas"/>
+            {form && <div>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <div>
+                    <label>
+                      <input type="text" placeholder="Title"{...register("title", { 
+                        required: true, 
+                        minLength: 3,
+                        })}/>
+                    </label>
+                    {errors.title?.type === 'required' && <span className="error" role="alert">Title is required</span>}
+                    {errors.title?.type === 'minLength' && <span className="error" role="alert">Title is too short</span>}
+                  </div>
+                  <div>
+                    <label>
+                      <input type="text"  placeholder="Description" {...register("description")}/>
+                    </label>
+                  </div>
+                  <button>Add Task</button>
+                </form>
+              </div>
+            }
+            {!form &&
+              <div className="new_task">
+                <Button variant="outline" size="xs" leftIcon='➕'  onClick={handleTaskNew}>
+                  Agregar nueva tarea
+                </Button>
+              </div>
+            }
+            <TaskList tasks = {tasks} onTaskClick = {handleTaskClick} onTaskDelete = {handleTaskDelete} onTaskEdit = {handleTaskEdit}/>
+          </div>
+        </ChakraProvider>
+    );
+};
